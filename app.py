@@ -34,23 +34,20 @@ if genre_filter != "All":
 
 query = f"""
 WITH filtered AS (
-    SELECT
-        m.title,
-        m.genres,
-        ROUND(AVG(r.rating), 2) AS avg_rating,
-        COUNT(*) AS num_ratings,
-        REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)$', '\\1')::INTEGER AS year
-    FROM ratings r
-    JOIN movies m ON r.movieId = m.movieId
-    WHERE m.title ~ '\\(\\d{{4}}\\)$'
-    {genre_condition}
-    GROUP BY m.title, m.genres
+  SELECT
+    m.title,
+    m.genres,
+    ROUND(AVG(r.rating), 2) AS avg_rating,
+    COUNT(*) AS num_ratings,
+    REGEXP_REPLACE(m.title, '.*\((\d{4})\)', '\1')::INTEGER AS year
+  FROM ratings r
+  JOIN movies m ON r."movieId" = m."movieId"
+  WHERE m.title ~ '\(\d{4}\)'
+  GROUP BY m.title, m.genres
 )
-SELECT *
-FROM filtered
-WHERE num_ratings >= {min_ratings}
-  AND year >= {min_year}
-ORDER BY {order_column} DESC
+SELECT * FROM filtered
+WHERE num_ratings >= 100 AND year >= 2000
+ORDER BY avg_rating DESC
 LIMIT 50;
 """
 
