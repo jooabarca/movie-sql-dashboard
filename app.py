@@ -10,7 +10,7 @@ st.markdown("""
 A simple but powerful movie insights app powered by **PostgreSQL** and **Streamlit**.
 
 We highlight:
-- ⭐ Highest Rated Movies (with 100+ votes)
+- ⭐ Highest Rated Movies
 - 🎭 Most Popular Genres by Rating Count
 """)
 
