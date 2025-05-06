@@ -14,18 +14,38 @@ We highlight:
 - 🎭 Most Popular Genres by Rating Count
 """)
 
+# --- Sidebar filters ---
+st.sidebar.header("🔎 Explore the Data")
+min_votes = st.sidebar.slider("Minimum number of ratings", 10, 500, 100, step=10)
+sort_by = st.sidebar.selectbox("Sort movies by", ["Average Rating", "Number of Ratings"])
+genre_filter = st.sidebar.selectbox("Filter by Genre", ["All", "Action", "Comedy", "Drama", "Horror", "Romance", "Thriller"])
+min_year = st.sidebar.slider("Minimum release year", 1950, 2025, 2000)
+
+order_column = "avg_rating" if sort_by == "Average Rating" else "num_ratings"
+
+# --- Genre condition ---
+genre_condition = ""
+if genre_filter != "All":
+    genre_condition = f"AND m.genres ILIKE '%%{genre_filter}%%'"
+
 # --- Query 1: Top Rated Movies ---
-query_top_movies = """
+query_top_movies = f"""
 SELECT
     m.title,
     m.genres,
     ROUND(AVG(r.rating), 2) AS avg_rating,
-    COUNT(*) AS num_ratings
+    COUNT(*) AS num_ratings,
+    CASE 
+        WHEN m.title ~ '\\(\\d{{4}}\\)$' THEN REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)$', '\\1')::INTEGER
+        ELSE NULL
+    END AS year
 FROM ratings r
 JOIN movies m ON r."movieId" = m."movieId"
+WHERE 1=1
+{genre_condition}
 GROUP BY m.title, m.genres
-HAVING COUNT(*) >= 100
-ORDER BY avg_rating DESC
+HAVING COUNT(*) >= {min_votes} AND year IS NOT NULL AND year >= {min_year}
+ORDER BY {order_column} DESC
 LIMIT 10;
 """
 df_movies = run_query(query_top_movies)
@@ -47,8 +67,8 @@ df_genres = run_query(query_top_genres)
 st.header("⭐ Top 10 Highest Rated Movies")
 if df_movies is not None and not df_movies.empty:
     st.dataframe(df_movies)
-    fig1 = px.bar(df_movies, x="title", y="avg_rating", color="genres",
-                  title="Top Rated Movies", labels={"avg_rating": "Average Rating"})
+    fig1 = px.bar(df_movies, x="title", y=order_column, color="genres",
+                  title=f"Top Movies by {sort_by}", labels={order_column: sort_by})
     st.plotly_chart(fig1, use_container_width=True)
 
     st.download_button(
