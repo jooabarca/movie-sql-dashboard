@@ -1,37 +1,20 @@
 import streamlit as st
-from scripts.db_connect import run_query
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
+from scripts.db_connect import run_query
 
-st.set_page_config(page_title="MovieLens Dashboard", layout="wide")
+st.set_page_config(page_title="🎬 MovieLens Showcase", layout="wide")
 
-st.title("MovieLens Dashboard + PostgreSQL + Streamlit")
-st.markdown("Analyze movie ratings with real time SQL queries, genre filtering, year range, and interactive charts.")
+st.title("🎬 MovieLens Analytics Dashboard")
+st.markdown("""
+A simple but powerful movie insights app powered by **PostgreSQL** and **Streamlit**.
 
-# --- Sidebar filters ---
-st.sidebar.header("🔎 Filters")
+We highlight:
+- ⭐ Highest Rated Movies (with 100+ votes)
+- 🎭 Most Popular Genres by Rating Count
+""")
 
-min_ratings = st.sidebar.slider("Minimum number of ratings:", 10, 1000, 100, 10)
-
-sort_by = st.sidebar.selectbox(
-    "Sort by:",
-    options=["Average Rating", "Number of Ratings"]
-)
-
-genre_filter = st.sidebar.selectbox(
-    "Genre contains:",
-    options=["All", "Action", "Comedy", "Drama", "Horror", "Romance", "Thriller"]
-)
-
-min_year = st.sidebar.slider("Minimum release year:", 1950, 2025, 2000)
-
-# --- Build SQL Query ---
-order_column = "avg_rating" if sort_by == "Average Rating" else "num_ratings"
-
-genre_condition = ""
-if genre_filter != "All":
-    genre_condition = f"AND m.genres ILIKE '%{genre_filter}%'"
-
+# --- Query 1: Top Rated Movies ---
 query_top_movies = """
 SELECT
     m.title,
@@ -45,7 +28,9 @@ HAVING COUNT(*) >= 100
 ORDER BY avg_rating DESC
 LIMIT 10;
 """
+df_movies = run_query(query_top_movies)
 
+# --- Query 2: Most Rated Genres ---
 query_top_genres = """
 SELECT
     m.genres,
@@ -56,7 +41,23 @@ GROUP BY m.genres
 ORDER BY total_ratings DESC
 LIMIT 10;
 """
-
-df_movies = run_query(query_top_movies)
 df_genres = run_query(query_top_genres)
 
+# --- Display Results ---
+st.header("⭐ Top 10 Highest Rated Movies")
+if df_movies is not None and not df_movies.empty:
+    st.dataframe(df_movies)
+    fig1 = px.bar(df_movies, x="title", y="avg_rating", color="genres",
+                  title="Top Rated Movies", labels={"avg_rating": "Average Rating"})
+    st.plotly_chart(fig1, use_container_width=True)
+else:
+    st.warning("No movie data available.")
+
+st.header("🎭 Top 10 Most Rated Genres")
+if df_genres is not None and not df_genres.empty:
+    st.dataframe(df_genres)
+    fig2 = px.pie(df_genres, names="genres", values="total_ratings",
+                  title="Most Popular Genres")
+    st.plotly_chart(fig2, use_container_width=True)
+else:
+    st.warning("No genre data available.")
