@@ -1,28 +1,16 @@
-import psycopg2
 import pandas as pd
-
-# Replace these with your actual PostgreSQL credentials
-DB_NAME = "movies_db"
-DB_USER = "postgres"
-DB_PASSWORD = "123Momiaes!"
-DB_HOST = "localhost"
-DB_PORT = "5432"
+import psycopg2
+import streamlit as st
 
 def run_query(sql):
     try:
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
-
-        # Run query and return as DataFrame
+        conn = psycopg2.connect(st.secrets["DB_URL"])
         df = pd.read_sql_query(sql, conn)
         conn.close()
         return df
+    except Exception as e:
+        st.error(f"❌ Query failed: {e}")
+        return None
 
     except Exception as e:
         print("Error:", e)
