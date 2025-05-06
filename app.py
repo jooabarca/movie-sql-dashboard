@@ -33,21 +33,17 @@ if genre_filter != "All":
     genre_condition = f"AND m.genres ILIKE '%{genre_filter}%'"
 
 query = f"""
-WITH filtered AS (
-  SELECT
+SELECT
     m.title,
     m.genres,
     ROUND(AVG(r.rating), 2) AS avg_rating,
-    COUNT(*) AS num_ratings,
-    REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)', '\\1')::INTEGER AS year
-  FROM ratings r
-  JOIN movies m ON r."movieId" = m."movieId"
-  WHERE m.title ~ '\\(\\d{{4}}\\)'
-  {genre_condition}
-  GROUP BY m.title, m.genres
-)
-SELECT * FROM filtered
-WHERE num_ratings >= {min_ratings} AND year >= {min_year}
+    COUNT(*) AS num_ratings
+FROM ratings r
+JOIN movies m ON r."movieId" = m."movieId"
+WHERE 1=1
+{genre_condition}
+GROUP BY m.title, m.genres
+HAVING COUNT(*) >= {min_ratings}
 ORDER BY {order_column} DESC
 LIMIT 50;
 """
