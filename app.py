@@ -39,15 +39,21 @@ WITH filtered AS (
     m.genres,
     ROUND(AVG(r.rating), 2) AS avg_rating,
     COUNT(*) AS num_ratings,
-    REGEXP_REPLACE(m.title, '.*\((\d{4})\)', '\1')::INTEGER AS year
+    CASE 
+      WHEN m.title ~ '\\(\\d{{4}}\\)$' THEN REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)$', '\\1')::INTEGER
+      ELSE NULL
+    END AS year
   FROM ratings r
   JOIN movies m ON r."movieId" = m."movieId"
-  WHERE m.title ~ '\(\d{4}\)'
+  WHERE 1=1
+    {f"AND m.genres ILIKE '%%{genre_filter}%%'" if genre_filter != "All" else ""}
   GROUP BY m.title, m.genres
 )
 SELECT * FROM filtered
-WHERE num_ratings >= 100 AND year >= 2000
-ORDER BY avg_rating DESC
+WHERE year IS NOT NULL
+  AND num_ratings >= {min_ratings}
+  AND year >= {min_year}
+ORDER BY {order_column} DESC
 LIMIT 50;
 """
 
