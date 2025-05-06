@@ -28,6 +28,32 @@ genre_condition = ""
 if genre_filter != "All":
     genre_condition = f"AND m.genres ILIKE '%%{genre_filter}%%'"
 
+# --- Query: Total Ratings (Unfiltered) ---
+total_ratings_query = "SELECT COUNT(*) FROM ratings;"
+df_total_ratings = run_query(total_ratings_query)
+total_ratings = df_total_ratings.iloc[0][0] if df_total_ratings is not None else 0
+
+# --- Query: Filtered Ratings Count ---
+query_filtered_ratings = f"""
+SELECT COUNT(*) FROM (
+    SELECT
+        m.title,
+        COUNT(*) AS num_ratings,
+        CASE 
+            WHEN m.title ~ '\\(\\d{{4}}\\)$' THEN REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)$', '\\1')::INTEGER
+            ELSE NULL
+        END AS year
+    FROM ratings r
+    JOIN movies m ON r."movieId" = m."movieId"
+    WHERE 1=1
+    {genre_condition}
+    GROUP BY m.title, m.title
+    HAVING COUNT(*) >= {min_votes} AND year IS NOT NULL AND year >= {min_year}
+) AS sub;
+"""
+df_filtered_count = run_query(query_filtered_ratings)
+filtered_ratings = df_filtered_count.iloc[0][0] if df_filtered_count is not None else 0
+
 # --- Query 1: Top Rated Movies ---
 query_top_movies = f"""
 WITH filtered AS (
@@ -65,6 +91,12 @@ ORDER BY total_ratings DESC
 LIMIT 10;
 """
 df_genres = run_query(query_top_genres)
+
+# --- Display Metrics ---
+st.subheader("📊 Overview")
+col1, col2 = st.columns(2)
+col1.metric("🔢 Total Ratings in DB", f"{total_ratings:,}")
+col2.metric("🎯 Ratings in Current Selection", f"{filtered_ratings:,}")
 
 # --- Display Results ---
 st.header("⭐ Top 10 Highest Rated Movies")
