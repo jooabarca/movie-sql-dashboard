@@ -30,21 +30,24 @@ if genre_filter != "All":
 
 # --- Query 1: Top Rated Movies ---
 query_top_movies = f"""
-SELECT
-    m.title,
-    m.genres,
-    ROUND(AVG(r.rating), 2) AS avg_rating,
-    COUNT(*) AS num_ratings,
-    CASE 
-        WHEN m.title ~ '\\(\\d{{4}}\\)$' THEN REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)$', '\\1')::INTEGER
-        ELSE NULL
-    END AS year
-FROM ratings r
-JOIN movies m ON r."movieId" = m."movieId"
-WHERE 1=1
-{genre_condition}
-GROUP BY m.title, m.genres
-HAVING COUNT(*) >= {min_votes} AND year IS NOT NULL AND year >= {min_year}
+WITH filtered AS (
+    SELECT
+        m.title,
+        m.genres,
+        ROUND(AVG(r.rating), 2) AS avg_rating,
+        COUNT(*) AS num_ratings,
+        CASE 
+            WHEN m.title ~ '\\(\\d{{4}}\\)$' THEN REGEXP_REPLACE(m.title, '.*\\((\\d{{4}})\\)$', '\\1')::INTEGER
+            ELSE NULL
+        END AS year
+    FROM ratings r
+    JOIN movies m ON r."movieId" = m."movieId"
+    WHERE 1=1
+    {genre_condition}
+    GROUP BY m.title, m.genres, m.title
+)
+SELECT * FROM filtered
+WHERE num_ratings >= {min_votes} AND year IS NOT NULL AND year >= {min_year}
 ORDER BY {order_column} DESC
 LIMIT 10;
 """
