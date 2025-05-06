@@ -35,7 +35,7 @@ total_ratings = df_total_ratings.iloc[0][0] if df_total_ratings is not None else
 
 # --- Query: Filtered Ratings Count ---
 query_filtered_ratings = f"""
-SELECT COUNT(*) FROM (
+WITH filtered AS (
     SELECT
         m.title,
         COUNT(*) AS num_ratings,
@@ -47,9 +47,10 @@ SELECT COUNT(*) FROM (
     JOIN movies m ON r."movieId" = m."movieId"
     WHERE 1=1
     {genre_condition}
-    GROUP BY m.title, m.title
-    HAVING COUNT(*) >= {min_votes} AND year IS NOT NULL AND year >= {min_year}
-) AS sub;
+    GROUP BY m.title
+)
+SELECT COUNT(*) FROM filtered
+WHERE num_ratings >= {min_votes} AND year IS NOT NULL AND year >= {min_year};
 """
 df_filtered_count = run_query(query_filtered_ratings)
 filtered_ratings = df_filtered_count.iloc[0][0] if df_filtered_count is not None else 0
@@ -70,7 +71,7 @@ WITH filtered AS (
     JOIN movies m ON r."movieId" = m."movieId"
     WHERE 1=1
     {genre_condition}
-    GROUP BY m.title, m.genres, m.title
+    GROUP BY m.title, m.genres
 )
 SELECT * FROM filtered
 WHERE num_ratings >= {min_votes} AND year IS NOT NULL AND year >= {min_year}
