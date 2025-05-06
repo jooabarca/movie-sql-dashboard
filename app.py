@@ -50,6 +50,13 @@ if df_movies is not None and not df_movies.empty:
     fig1 = px.bar(df_movies, x="title", y="avg_rating", color="genres",
                   title="Top Rated Movies", labels={"avg_rating": "Average Rating"})
     st.plotly_chart(fig1, use_container_width=True)
+
+    st.download_button(
+        label="⬇ Download Movies CSV",
+        data=df_movies.to_csv(index=False).encode("utf-8"),
+        file_name="top_movies.csv",
+        mime="text/csv"
+    )
 else:
     st.warning("No movie data available.")
 
@@ -59,5 +66,12 @@ if df_genres is not None and not df_genres.empty:
     fig2 = px.pie(df_genres, names="genres", values="total_ratings",
                   title="Most Popular Genres")
     st.plotly_chart(fig2, use_container_width=True)
+
+    st.download_button(
+        label="⬇ Download Genres CSV",
+        data=df_genres.to_csv(index=False).encode("utf-8"),
+        file_name="top_genres.csv",
+        mime="text/csv"
+    )
 else:
     st.warning("No genre data available.")
