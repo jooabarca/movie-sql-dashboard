@@ -16,7 +16,7 @@ We highlight:
 
 # --- Sidebar filters ---
 st.sidebar.header("🔎 Explore the Data")
-min_votes = st.sidebar.slider("Minimum number of ratings", 10, 500, 100, step=10)
+min_votes = st.sidebar.slider("Minimum number of ratings", 10, 300, 100, step=10)
 sort_by = st.sidebar.selectbox("Sort movies by", ["Average Rating", "Number of Ratings"])
 genre_filter = st.sidebar.selectbox("Filter by Genre", ["All", "Action", "Comedy", "Drama", "Horror", "Romance", "Thriller"])
 min_year = st.sidebar.slider("Minimum release year", 1950, 2025, 2000)
