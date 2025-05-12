@@ -5,11 +5,11 @@ from scripts.db_connect import run_query
 
 st.set_page_config(page_title="🎬 MovieLens Showcase", layout="wide")
 
-st.title("🎬 MovieLens Analytics Dashboard")
+st.title("MovieLens Analytics Dashboard")
 st.markdown("""
-A simple but powerful movie insights app powered by **PostgreSQL** and **Streamlit**.
+A movie insights app powered by **PostgreSQL** and **Streamlit**.
 
-We highlight:
+highlights:
 - ⭐ Highest Rated Movies
 - 🎭 Most Popular Genres by Rating Count
 """)
@@ -94,13 +94,13 @@ LIMIT 10;
 df_genres = run_query(query_top_genres)
 
 # --- Display Metrics ---
-st.subheader("📊 Overview")
+st.subheader("Overview")
 col1, col2 = st.columns(2)
-col1.metric("🔢 Total Ratings in DB", f"{total_ratings:,}")
-col2.metric("🎯 Ratings in Current Selection", f"{filtered_ratings:,}")
+col1.metric("Total Ratings in DB", f"{total_ratings:,}")
+col2.metric("Ratings in Current Selection", f"{filtered_ratings:,}")
 
 # --- Display Results ---
-st.header("⭐ Top 10 Highest Rated Movies")
+st.header("Top 10 Highest Rated Movies")
 if df_movies is not None and not df_movies.empty:
     st.dataframe(df_movies)
     fig1 = px.bar(df_movies, x="title", y=order_column, color="genres",
@@ -116,7 +116,7 @@ if df_movies is not None and not df_movies.empty:
 else:
     st.warning("No movie data available.")
 
-st.header("🎭 Top 10 Most Rated Genres")
+st.header("Top 10 Most Rated Genres")
 if df_genres is not None and not df_genres.empty:
     st.dataframe(df_genres)
     fig2 = px.pie(df_genres, names="genres", values="total_ratings",
