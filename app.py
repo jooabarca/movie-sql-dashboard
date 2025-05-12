@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from scripts.db_connect import run_query
 
-st.set_page_config(page_title="🎬 MovieLens Showcase", layout="wide")
+st.set_page_config(page_title="MovieLens Showcase", layout="wide")
 
 st.title("MovieLens Analytics Dashboard")
 st.markdown("""
